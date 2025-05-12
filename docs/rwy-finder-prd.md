@@ -1,232 +1,157 @@
-# ✅ PRD Product Requirements Document
+# ✅ Product Requirements Document — Representative Weather Year Finder (rwy‑finder)
+
+*Last updated: **11 May 2025***
 
 ---
 
-## 1. Title
-**Representative Weather Year Finder – Python App**
+## 1  Title
+
+**Representative Weather Year Finder – Python Application**
 
 ---
 
-## 2. Purpose / Objective
+## 2  Purpose / Objective
 
-We aim to identify a **Representative Weather Year (RWY)** — a 365-day window that serves as a proxy for long-term weather conditions.
-The detailed methodology is described in Section 8.
-
-------
-
-## 3. Background / Context
-
-Currently, simulations are run using a legacy weather year 
-that hasn't been reviewed for a long time.
+Determine one or more **Representative Weather Years (RWYs)** — contiguous 8 760‑hour windows that approximate long‑term (1980‑2022) weather conditions in Central Western Europe. The RWYs accelerate BID3 power‑market simulations while preserving statistical realism.
 
 ---
 
-## 4. Users / Personas
+## 3  Background / Context
 
-- Energy market analysts (internal Markets/Analysis team)
-- Power price forecasters
-- Model developers maintaining SRMC simulations
+Studies currently rely on an outdated weather year. Updating this input promises more trustworthy spot‑price, adequacy, and dispatch analyses while cutting runtime.
 
 ---
 
-## 5. Scope
+## 4  Users / Personas
 
-### ✅ In Scope
-- Output a ranked list of the most representative 365-day windows
-- Export the top 1 RWY, reordered to start on Jan 1
-- Identify RWYs for:
-  - Full period: 1980–2022
-  - Recent history: 2013–2022
-
-### ❌ Out of Scope
-- GUI or web interface
-- Precipitation, humidity, or other meteorological data
-- Integration with downstream modeling tools
+* Energy‑market analysts (Markets / Analysis team)
+* Power‑price forecasters
+* Model developers maintaining SRMC / BID3 simulations
 
 ---
 
-## 6. Requirements
+## 5  Scope
 
-### 🔧 Functional Requirements
-- Input:
-  - Load hourly weather data from a `.parquet` file
-  - Read global weighting factors from a `.csv` file
-- Output:
-  - Top 1 represenative weather years (RWY) for:
-    - Full period (1980–2022)
-    - Recent history (2013–2022)
-  - Metadata summary (e.g., window score, start date, end date)
-  - Parquet/CSV of reordered year
-  - Scorecard for all candidates
+### ✅ In scope
 
-### ⚙️ Non-Functional Requirements
-- Simple Python 3.12 script w/o CLI
-- Use **pandas** for data manipulation
-- Modular, testable codebase
-- Unit tests written using **pytest**
-- Windows platform
----
+* Produce a **ranked list** of RWY candidates (distance metrics in §8)
+* Export the **top 10** windows (markdown table with start/end dates + metrics)
+* Export the **best** window reordered to start **01 Jan 00:00** (Parquet)
+* Identify RWYs for two horizons
 
-## 7. Data Requirements
+  * **Full period:** 1980 ‑ 2022
+  * **Recent decade:** 2013 ‑ 2022
 
-### ✅ Weather Data Input Format
-- Format: `.parquet`
-- File: `weather_history.parquet`
-- Structure: `DatetimeIndex` called `timestamp`, 
-  timezone-naive, no leap years
-  43 years x 24 hours x 365 days = 376,680 hourly entries
-  from 1980–01–01 to 2022–12–31
-- Columns:
-  - `Temperature:` temperature_{de,nl,uk}
-  - `Solar:` solar_load_factor_{de,nl,uk}
-  - `Wind (Onshore):` onwind_load_factor_{de,nl,uk}
-  - `Wind (Offshore):` offwind_load_factor_{de,nl,uk}
+### ❌ Out of scope
 
-### ✅ Weather Metrics Weights Input Format
-- Format: `.csv`
-- File: `weather_metric_weights.csv`
-- Structure: 1 row per country, 1 column per variable
-- Columns:
-  - `country`: DE, NL, UK
-  - `solar`: weight for solar generation
-  - `onwind`: weight for onshore wind generation
-  - `offwind`: weight for offshore wind generation
-  - `temperature`: weight for temperature impact on demand
+* GUI or web interface
+* Additional meteorological variables (precipitation, humidity, …)
+* Direct integration with downstream tools (handled separately)
 
 ---
 
-## 8. Representative Weather Year (RWY) Methodology
+## 6  Requirements
 
-## Purpose
+### 6.1  Functional
 
-The RWY procedure selects one continuous 8 760-hour window whose weather statistics are most similar to the long-term (1980 – 2022) climate of Central Western Europe (Germany, Netherlands, United Kingdom).
-Running power-system simulations on this single year preserves the bulk characteristics of 43 years of weather while cutting computation time.
+|  #                                            |  Requirement                                                                                                                   |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+|  F‑1                                          | **Input**: read hourly weather time‑series from `${DATA_PATH}/weather_history.parquet` (see §7)                                |
+|  F‑2                                          | **Input**: read weighting factors from `${DATA_PATH}/weather_metric_weights.csv`                                               |
+|  F‑3                                          | Slide an 8 760‑hour window in 24‑hour steps over the data set (no leap‑day rows are present)                                   |
+|  F‑4                                          | Compute features, weighting, PCA, and distance as in §8 (retain PCs explaining **≥ 95 %** variance)                            |
+|  F‑5                                          | Write **intermediate artefacts** to `${DATA_PATH}/YYYYMMDD_HHMM/` subfolder:                                                   |
+|   • feature matrices (Parquet)                |                                                                                                                                |
+|   • PCA loadings & explained‑variance **PNG** |                                                                                                                                |
+|   • distance time‑series (Parquet)            |                                                                                                                                |
+|  F‑6                                          | Write `rwy_candidates.md` to the same subfolder — markdown table with start / end / Euclidean / Mahalanobis / cosine distances |
+|  F‑7                                          | Write `rwy_top10.md` — markdown table (rank 1‑10, start\_ts, end\_ts, all three distances)                                     |
+|  F‑8                                          | Write `rwy_best_full.parquet` and `rwy_best_recent.parquet`: hourly series (8 760 rows × variables) reordered to calendar year |
+|  F‑9                                          | All exported Parquet files must have `timestamp` as index and follow the **8 760‑h, no‑leap‑day convention** used by BID3      |
 
-## Input Data
+### 6.2  Non‑functional
 
-* **Temporal range:** 1 Jan 1980 – 31 Dec 2022
-* **Resolution:** hourly
-* **Variables:** Temperature (°C), Solar PV load factor, Onshore & Offshore wind load factors
-* **Countries:** DE, NL, UK
-
-## Methodological Steps
-
-### 8.1 Rolling-window feature calculation
-
-* Slide a window of 8 760 h forward in 24-h steps.
-* For every window, compute the **mean** (μ) and **standard deviation** (σ) of each weather variable.
-   
-  *Rationale:* The pair (μ, σ) captures both average conditions and intra-year volatility.
-
----
-
-### 8.2 Per-feature standardisation
-
-* Across all candidate windows, **z-score** each of the μ and σ columns:
-
-$$
-z_{j}=\frac{x_{j}-\bar{x}}{s_x}
-$$
-
-This places all features on a common, unit-variance scale **before any weighting**.
- 
-*Rationale:* Removes unit differences (°C vs. p.u.) and ensures later weights influence the similarity metric rather than being cancelled out.
+* Python ≥ 3.12, pandas, scikit‑learn, pytest
+* Modular, unit‑tested codebase (≥ 90 % coverage goal)
+* End‑to‑end runtime **≤ 60 s** on analyst‑grade hardware (Apple M2 / Intel i7) — confirmed acceptable
+* Works cross‑platform (Windows, macOS, Linux CI)
 
 ---
 
-### 8.3 Apply variable weighting based on energy-system impact
+## 7  Data Requirements
 
-Multiply every standardised feature that belongs to variable *i* by its energy-system weight *w\_i*:
+|  File                         |  Format  |  Rows × Cols  |  Notes                                                          |
+| ----------------------------- | -------- | ------------- | --------------------------------------------------------------- |
+|  `weather_history.parquet`    | Parquet  | 376 680 × 12  | Hourly 1980‑01‑01 → 2022‑12‑31, **no leap years**               |
+|  `weather_metric_weights.csv` | CSV      | 3 × 5         | DE, NL, UK weights for temperature, solar, on‑ & off‑shore wind |
 
-$$
-z_{j}^{(\text{weighted})}=w_i\;z_{j}
-$$
-
-* **VRE variables (solar, onshore, offshore wind):**
-
-  * $w_i$ = annual energy generation (MWh) of the technology in 2024.
-* **Temperature:**
-
-  * $w_i$ = demand-temperature sensitivity (MWh / °C) × standard deviation of annual mean temperature.
-
- 
-*Rationale:* Because weighting is applied **after** standardisation, the factors do **not** get cancelled; they genuinely tilt the distance metric toward variables that matter most for today’s power balance.
-
-> **Implementation tip** If you want the weight to reflect variance contribution rather than amplitude, scale by $\sqrt{w_i}$.
+Both live under the directory given by the **`DATA_PATH` environment variable**.
 
 ---
 
-### 8.4 Principal Component Analysis (PCA)
+## 8  Methodology
 
-* Concatenate all weighted z-scores of a window into a feature vector.
-* Perform PCA on this matrix to obtain uncorrelated principal components (PCs).
-   
-  *Rationale:* Removes collinearity (e.g. on- & offshore wind) so that correlated variables do not double-count in the distance metric.
-  *Component retention rule:* keep PCs that together explain ≥ 95 % of total variance.
+### 8.1  Feature calculation
 
----
+For each 8 760‑h window compute **mean** μ and **standard deviation** σ per weather variable.
 
-### 8.5 Distance calculation in PC space
+### 8.2  Standardisation
 
-* Let $\mathbf{y}_k$ be the PC vector for window *k* and $\bar{\mathbf{y}}$ the long-term climatology (the mean of all windows, typically ≈ 0).
-* Compute the **Euclidean distance**
+Z‑score every μ and σ across all windows:
+$z_j = \frac{x_j - \bar{x}}{s_x}$
 
-$$
-d_k=\bigl\|\,\mathbf{y}_k-\bar{\mathbf{y}}\,\bigr\|_2
-$$
+### 8.3  Energy weighting
 
-*Rationale:* A single metric now integrates differences in both averages and variabilities, already weighted by energy importance and rid of redundancy.
+Multiply each standardised feature by its technology weight $w_i$:
+$z_j^{(\text w)} = w_i \, z_j$
 
----
+### 8.4  Principal‑Component Analysis
 
-### 8.6 RWY selection
+Perform PCA on the weighted matrix. **Retain PCs that jointly explain ≥ 95 % total variance**.
 
-Choose the window with the smallest distance $d_k$.
- 
-*Rationale:* This window is statistically the closest analogue to 43-year climatology once energy-system importance is honoured.
+### 8.5  Distance metrics
 
----
+For every window *k* compute three distances in PC‑space:
 
-### 8.7 Post-processing
+* **Euclidean**:  $d_k^{(E)} = \lVert \mathbf y_k - \bar{\mathbf y} \rVert_2$
+* **Mahalanobis** (diagonal covariance in PC‑space equals $\mathbf I$ so equivalent to χ²):
+  $d_k^{(M)} = \sqrt{ \sum_i \frac{y_{k,i}^2}{\lambda_i} }$
+* **Cosine** similarity converted to distance:
+  $d_k^{(C)} = 1 - \cos(\theta_k) = 1 - \frac{\mathbf y_k \cdot \bar{\mathbf y}}{\lVert\mathbf y_k\rVert \, \lVert\bar{\mathbf y}\rVert}$
 
-Rotate the chosen window so that it starts on **1 January 00:00** and ends on **31 December 23:00**.
- 
-*Rationale:* Ensures compatibility with power-system models that expect calendar-aligned years.
+### 8.6  RWY selection & post‑processing
+
+Rank windows by Euclidean distance (primary), with Mahalanobis and cosine reported for comparison. Rotate the best window so it starts on **01 Jan 00:00** before exporting.
 
 ---
 
-## Summary of key principles
+## 9  Outputs Overview
 
-| Step                             | Why it matters                                 |
-| -------------------------------- | ---------------------------------------------- |
-| Calculate μ & σ per window       | Capture level and volatility                   |
-| Standardise before weighting | Keep units comparable so weights take effect   |
-| Apply weights to z-scores        | Push high-impact variables to drive similarity |
-| PCA on weighted space            | Remove redundant information                   |
-| Euclidean distance in PC space   | One metric combines all effects                |
-| Pick minimum-distance window     | Select statistically most representative year  |
-
----
-
-### Notes
-
-* Weight factors can be re-tuned when the energy mix changes (e.g. 2030 scenario).
-* If extreme-condition years are also needed, repeat the procedure with a distance metric targeted at tails rather than means.
+|  Artefact                    |  Format  |  Path (relative to `DATA_PATH`)  |  Description                                     |
+| ---------------------------- | -------- | -------------------------------- | ------------------------------------------------ |
+| `features.parquet`           | Parquet  | `YYYYMMDD_HHMM/`                 | Window‑level μ & σ (weighted)                    |
+| `pca_components.parquet`     | Parquet  | `YYYYMMDD_HHMM/`                 | PCA loadings & singular values                   |
+| `pca_explained_variance.png` | PNG      | `YYYYMMDD_HHMM/`                 | Scree plot                                       |
+| `distance_series.parquet`    | Parquet  | `YYYYMMDD_HHMM/`                 | Distance per window (all 3 metrics)              |
+| `rwy_candidates.md`          | Markdown | `YYYYMMDD_HHMM/`                 | **All** windows with start/end + three distances |
+| `rwy_top10.md`               | Markdown | `YYYYMMDD_HHMM/`                 | **Top 10** windows (rank & metrics)              |
+| `rwy_best_full.parquet`      | Parquet  | `YYYYMMDD_HHMM/`                 | Reordered hourly RWY 1980‑2022                   |
+| `rwy_best_recent.parquet`    | Parquet  | `YYYYMMDD_HHMM/`                 | Reordered hourly RWY 2013‑2022                   |
 
 ---
 
-## 9. Success Criteria
-- Select RWYs for:
-  - Full period (1980–2022)
-  - Recent period (2013–2022)
-- Process data in under 1 minute
-- Output includes:
-  - Top ranked RWY (reordered)
-  - All candidate windows with scores
-  - Summary stats (means, variances, trends)
+## 10  Success Criteria
+
+* Top 10 RWYs identified with Euclidean, Mahalanobis, and cosine metrics
+* Artefacts saved under `${DATA_PATH}/YYYYMMDD_HHMM/` with naming above
+* End‑to‑end run ≤ 60 s; unit tests pass in CI
 
 ---
 
-## 10. Risks & Challenges
-- Climate trends may bias RWY selection
-- Reordering from arbitrary start date to Jan 1 may introduce edge artifacts, especially if beginning and end weather conditions differ significantly.
+## 11  Risks & Mitigations
+
+|  Risk                         |  Mitigation                                              |
+| ----------------------------- | -------------------------------------------------------- |
+| Climate‑trend bias            | Detrend inputs or choose horizon‑specific climatology    |
+| Edge artefacts after rotation | Visual QC & optional smoothing guard band                |
+| Weight obsolescence           | Keep weights external; rerun when technology mix changes |
