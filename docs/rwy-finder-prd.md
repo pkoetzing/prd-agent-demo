@@ -64,10 +64,11 @@ Studies currently rely on an outdated weather year. Updating this input promises
 |   • feature matrices (Parquet)                |                                                                                                                                |
 |   • PCA loadings & explained‑variance **PNG** |                                                                                                                                |
 |   • distance time‑series (Parquet)            |                                                                                                                                |
-|  F‑6                                          | Write `rwy_candidates.md` to the same subfolder — markdown table with start / end / Euclidean / Mahalanobis / cosine distances |
+|  F‑6                                          | Write `rwy_candidates.parquet` to the same subfolder — Parquet table with Start/End (dates only) & three distances             |
 |  F‑7                                          | Write `rwy_top10.md` — markdown table (rank 1‑10, start\_ts, end\_ts, all three distances)                                     |
 |  F‑8                                          | Write `rwy_best_full.parquet` and `rwy_best_recent.parquet`: hourly series (8 760 rows × variables) reordered to calendar year |
 |  F‑9                                          | All exported Parquet files must have `timestamp` as index and follow the **8 760‑h, no‑leap‑day convention** used by BID3      |
+|  F‑10                                         | **Plot** the `rwy_candidates` time series: Euclidean distance vs. window start date, and save as `rwy_candidates.png` in the output folder |
 
 ### 6.2  Non‑functional
 
@@ -133,7 +134,8 @@ Rank windows by Euclidean distance (primary), with Mahalanobis and cosine report
 | `pca_components.parquet`     | Parquet  | `YYYYMMDD_HHMM/`                 | PCA loadings & singular values                   |
 | `pca_explained_variance.png` | PNG      | `YYYYMMDD_HHMM/`                 | Scree plot                                       |
 | `distance_series.parquet`    | Parquet  | `YYYYMMDD_HHMM/`                 | Distance per window (all 3 metrics)              |
-| `rwy_candidates.md`          | Markdown | `YYYYMMDD_HHMM/`                 | **All** windows with start/end + three distances |
+| `rwy_candidates.parquet`     | Parquet  | `YYYYMMDD_HHMM/`                 | **All** windows with Start/End (dates only) + three distances |
+| `rwy_candidates.png`        | PNG      | `YYYYMMDD_HHMM/`                 | Plot: Euclidean distance vs. window start date   |
 | `rwy_top10.md`               | Markdown | `YYYYMMDD_HHMM/`                 | **Top 10** windows (rank & metrics)              |
 | `rwy_best_full.parquet`      | Parquet  | `YYYYMMDD_HHMM/`                 | Reordered hourly RWY 1980‑2022                   |
 | `rwy_best_recent.parquet`    | Parquet  | `YYYYMMDD_HHMM/`                 | Reordered hourly RWY 2013‑2022                   |

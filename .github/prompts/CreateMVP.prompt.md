@@ -1,11 +1,8 @@
 ---
-
 mode: 'agent'
 tools: ['promptBoost', 'codebase']
 description: 'Generate a new MVP from a product requirement document.'
-
 ---
-
 PRD to use: #file:../../docs/rwy-finder-prd.md
 
 1. **Complete the MVP**: Implement the full Minimum Viable Product (MVP) without waiting for feedback or seeking clarification. Make reasonable assumptions where necessary.
