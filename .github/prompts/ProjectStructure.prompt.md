@@ -1,6 +1,6 @@
 ## Directory Structure
 
-- Create all code in the current folder. 
+- Create all code in the current folder.
 - Try to avoid splitting the code into multiple files unless necessary.
 - Adhere to the following structure:
   - `root/` (main code)
@@ -23,6 +23,7 @@
 - Use a `requirements.txt` file to manage dependencies.
 - Install the following packages in the `.venv`:
   - `pandas`
+  - `pandas-stubs`
   - `numpy`
   - `pyarrow`
   - `pytest`

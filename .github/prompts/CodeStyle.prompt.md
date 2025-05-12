@@ -24,3 +24,9 @@
 #### Pandas Best Practices
 - Avoid using `inplace=True` with pandas operations.
 - Prefer method chaining for cleaner and more readable pandas code.
+
+#### File Handling
+- Use the pathlib module for file and directory operations.
+
+#### Linting and Formatting
+- Use `ruff` for linting and formatting.
