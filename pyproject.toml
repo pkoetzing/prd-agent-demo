@@ -1,0 +1,11 @@
+[project]
+name = "rwy_finder"
+version = "0.1.0"
+description = "Representative Weather Year Finder"
+authors = [
+    {name = "AI Agent"}
+]
+requires-python = ">=3.12"
+
+[tool.setuptools]
+packages = ["rwy_finder"]
