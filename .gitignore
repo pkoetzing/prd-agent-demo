@@ -139,3 +139,5 @@ cython_debug/
 
 # Ignore all files in data subfolders, but not files directly in data
 data/*/
+
+.vscode/
