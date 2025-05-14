@@ -1,0 +1,12 @@
+pandas
+pandas-stubs
+numpy
+pyarrow
+pytest
+python-dotenv
+ipykernel
+ruff
+mypy
+scikit-learn
+matplotlib
+factor_analyzer
