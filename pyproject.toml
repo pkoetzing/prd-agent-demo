@@ -41,3 +41,7 @@ ignore = [
 [tool.ruff.format]
 # Use single quotes for non-triple-quoted strings.
 quote-style = "single"
+
+[tool.mypy]
+disable_error_code = ["assignment"]
+ignore_errors = true

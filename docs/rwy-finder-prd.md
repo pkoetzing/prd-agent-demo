@@ -110,6 +110,14 @@ $z_j^{(\text w)} = w_i \, z_j$
 
 Perform PCA on the weighted matrix. **Retain PCs that jointly explain ≥ 95 % total variance**.
 
+**Decode the abstract PCs** into plain language labels following these steps
+- Derive relevant PCs from the weighted-standardised feature matrix.
+- Square-and-normalise loadings → % contribution table.
+- Label each PC by its top drivers (≥ 10 % share or |loading| ≥ 0.30).
+- Perform Varimax rotation to sharpen interpretation; recompute contributions.
+- Report rotated PCs, driver tables and visual aids; retain the name “RPC k” in downstream documentation.
+- Use the Python factor_analyzer package for rotation.
+
 ### 8.5  Distance metrics
 
 For every window *k* compute three distances in PC‑space:

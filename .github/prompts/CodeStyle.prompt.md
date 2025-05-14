@@ -22,6 +22,10 @@
   - `datefmt='%Y-%m-%d %H:%M:%S'`
 
 #### Pandas Best Practices
+- When working with timeseries data always convert the timestamp
+  column to a DatetimeIndex and use it as the DataFrame’s index;
+  do not leave timestamps in a separate column or separate list
+  and do not separate timestamps from the values
 - Avoid using `inplace=True` with pandas operations.
 - Prefer method chaining for cleaner and more readable pandas code.
 
