@@ -140,4 +140,8 @@ cython_debug/
 # Ignore all files in data subfolders, but not files directly in data
 data/*/
 
+# VSCode settings
 .vscode/
+
+# Interim test output to facilitate Copilot agent mode
+test_output.txt
