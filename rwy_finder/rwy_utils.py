@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from factor_analyzer import Rotator
 from sklearn.decomposition import PCA
+import plotly.graph_objects as go
 
 
 def load_weather_data(path: str) -> pd.DataFrame:
@@ -107,7 +108,9 @@ def perform_pca(features: pd.DataFrame) -> dict[str, Any]:
         'mean': X_pca.mean(axis=0),
         'window_idx': features.index,
         'loadings': loadings,
-        'labels': labels_rot
+        'labels': labels_rot,
+        'loadings_rot': load_rot,
+        'contrib_rot': contrib_rot
     }
 
 
@@ -179,6 +182,12 @@ def export_outputs(
         with (output_path / 'rwy_top10_recent.md').open('w') as f:
             f.write(top10_recent_md)
     _export_best_windows(weather_df, window_starts, distances, output_dir)
+
+    # Plot Sankey diagram for rotated loadings
+    plot_sankey_rotated_loadings(
+        pca_result['contrib_rot'],
+        output_path / 'pca_sankey.html'
+    )
 
 
 def _make_candidates_df(distances: pd.DataFrame) -> pd.DataFrame:
@@ -273,3 +282,43 @@ def _rotate_to_jan1(df: pd.DataFrame) -> pd.DataFrame:
     """Rotate DataFrame so it starts on Jan 1 00:00."""
     idx_jan1 = df.index.get_loc(df.index[df.index.month == 1][0])
     return pd.concat([df.iloc[idx_jan1:], df.iloc[:idx_jan1]])
+
+
+def plot_sankey_rotated_loadings(contrib_rot: pd.DataFrame, output_path):
+    """
+    Plot a Sankey diagram from the Varimax-rotated squared-loading matrix.
+    Only show links with ≥2% contribution.
+    """
+    sources = []
+    targets = []
+    values = []
+    feature_names = list(contrib_rot.index)
+    pc_names = list(contrib_rot.columns)
+    node_labels = feature_names + pc_names
+
+    for i, feat in enumerate(feature_names):
+        for j, pc in enumerate(pc_names):
+            val = contrib_rot.iloc[i, j]
+            if val >= 2:
+                sources.append(i)
+                targets.append(len(feature_names) + j)
+                values.append(val)
+
+    fig = go.Figure(go.Sankey(
+        node=dict(
+            pad=15,
+            thickness=15,
+            line=dict(color="black", width=0.5),
+            label=node_labels
+        ),
+        link=dict(
+            source=sources,
+            target=targets,
+            value=values
+        )
+    ))
+    fig.update_layout(
+        title_text="Sankey Diagram of Varimax-Rotated Feature Contributions",
+        font_size=10
+    )
+    fig.write_html(str(output_path))

@@ -54,21 +54,19 @@ Studies currently rely on an outdated weather year. Updating this input promises
 
 ### 6.1  Functional
 
-|  #                                            |  Requirement                                                                                                                   |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-|  F‑1                                          | **Input**: read hourly weather time‑series from `${DATA_PATH}/weather_history.parquet` (see §7)                                |
-|  F‑2                                          | **Input**: read weighting factors from `${DATA_PATH}/weather_metric_weights.csv`                                               |
-|  F‑3                                          | Slide an 8 760‑hour window in 24‑hour steps over the data set (no leap‑day rows are present)                                   |
-|  F‑4                                          | Compute features, weighting, PCA, and distance as in §8 (retain PCs explaining **≥ 95 %** variance)                            |
-|  F‑5                                          | Write **intermediate artefacts** to `${DATA_PATH}/YYYYMMDD_HHMM/` subfolder:                                                   |
-|   • feature matrices (Parquet)                |                                                                                                                                |
-|   • PCA loadings & explained‑variance **PNG** |                                                                                                                                |
-|   • distance time‑series (Parquet)            |                                                                                                                                |
-|  F‑6                                          | Write `rwy_candidates.parquet` to the same subfolder — Parquet table with Start/End (dates only) & three distances             |
-|  F‑7                                          | Write `rwy_top10_full.md` and `rwy_top10_recent.md` — markdown tables (rank 1‑10, start\_ts, end\_ts, all three distances) for full and recent periods |
-|  F‑8                                          | Write `rwy_best_full.parquet` and `rwy_best_recent.parquet`: hourly series (8 760 rows × variables) reordered to calendar year |
-|  F‑9                                          | All exported Parquet files must have `timestamp` as index and follow the **8 760‑h, no‑leap‑day convention** used by BID3      |
-|  F‑10                                         | **Plot** the `rwy_candidates` time series: Euclidean distance vs. window start date, and save as `rwy_candidates.png` in the output folder |
+| #   | Requirement |
+|-----|-------------|
+| F‑1 | **Input**: read hourly weather time‑series from `${DATA_PATH}/weather_history.parquet` (see §7) |
+| F‑2 | **Input**: read weighting factors from `${DATA_PATH}/weather_metric_weights.csv` |
+| F‑3 | Slide an 8 760‑hour window in 24‑hour steps over the data set (no leap‑day rows are present) |
+| F‑4 | Compute features, weighting, PCA, and distance as in §8 (retain PCs explaining **≥ 95 %** variance) |
+| F‑5 | Write **intermediate artefacts** to `${DATA_PATH}/YYYYMMDD_HHMM/` subfolder:<br>• feature matrices (Parquet)<br>• PCA loadings & explained‑variance **PNG**<br>• distance time‑series (Parquet) |
+| F‑6 | A **Sankey diagram** is produced from the Varimax-rotated squared-loading matrix: the 24 weather features form the source nodes, the six rotated PCs form the target nodes, and link widths are proportional to each feature’s percentage contribution to each component (thresholded at ≥ 2 % for clarity). The graphic makes it visually obvious, e.g., that RPC 3 is nearly a pure ‘solar-mean’ axis while RPC 6 is dominated by ‘temperature variability’. |
+| F‑7 | Write `rwy_candidates.parquet` to the same subfolder — Parquet table with Start/End (dates only) & three distances |
+| F‑8 | Write `rwy_top10_full.md` and `rwy_top10_recent.md` — markdown tables (rank 1‑10, start\_ts, end\_ts, all three distances) for full and recent periods |
+| F‑9 | Write `rwy_best_full.parquet` and `rwy_best_recent.parquet`: hourly series (8 760 rows × variables) reordered to calendar year |
+| F‑10 | All exported Parquet files must have `timestamp` as index and follow the **8 760‑h, no‑leap‑day convention** used by BID3 |
+| F‑11 | **Plot** the `rwy_candidates` time series: Euclidean distance vs. window start date, and save as `rwy_candidates.png` in the output folder |
 
 ### 6.2  Non‑functional
 

@@ -10,3 +10,4 @@ mypy
 scikit-learn
 matplotlib
 factor_analyzer
+plotly
