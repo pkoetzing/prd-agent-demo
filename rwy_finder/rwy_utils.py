@@ -4,9 +4,9 @@ from typing import Any
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 from factor_analyzer import Rotator
 from sklearn.decomposition import PCA
-import plotly.graph_objects as go
 
 
 def load_weather_data(path: str) -> pd.DataFrame:
@@ -147,14 +147,30 @@ def export_outputs(
     features_weighted.to_parquet(output_path / 'features.parquet')
     pd.DataFrame(pca_result['components']).to_parquet(
         output_path / 'pca_components.parquet')
-    plt.figure()
-    plt.plot(
-        np.arange(1, len(pca_result['explained_variance']) + 1),
-        np.cumsum(pca_result['explained_variance'])
-    )
-    plt.xlabel('Principal Component')
-    plt.ylabel('Cumulative Explained Variance')
-    plt.title('PCA Explained Variance')
+
+    # Explained variance plot with waterfall diagram
+    explained = pca_result['explained_variance']
+    pcs = [f'PC{i + 1}' for i in range(len(explained))]
+    _fig, ax = plt.subplots(figsize=(8, 5))
+    prev = 0
+    for i, val in enumerate(explained):
+        ax.bar(i, val, bottom=prev, color='C0')
+        prev += val
+    # Draw cumulative line
+    cumvals = np.cumsum(explained)
+    ax.plot(
+        range(len(explained)), cumvals, color='C1', marker='o',
+        label='Cumulative')
+    for x, y in zip(range(len(explained)), cumvals, strict=False):
+        ax.text(x, y, f'{y:.2f}', va='bottom', ha='center', fontsize=8)
+    ax.set_xticks(range(len(pcs)))
+    ax.set_xticklabels(pcs)
+    ax.set_ylabel('Explained Variance Ratio')
+    ax.set_title('PCA Explained Variance Waterfall')
+    ax.legend(['Cumulative'])
+    ax.grid(axis='y')
+    plt.xlabel('Principal Components')
+    plt.tight_layout()
     plt.savefig(output_path / 'pca_explained_variance.png')
     plt.close()
     # TODO: Plot loadings from pca_result['loadings']
