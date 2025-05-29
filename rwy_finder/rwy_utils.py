@@ -132,6 +132,46 @@ def compute_distances(pca_result: dict[str, Any]) -> pd.DataFrame:
     }, index=pca_result['window_idx'])
 
 
+def plot_pca_explained_variance(pca_result, output_path):
+    """Plot explained variance waterfall and cumulative line for PCA.
+    Show top 3 features per PC in a textbox.
+    """
+    explained = pca_result['explained_variance']
+    loadings = pca_result['loadings']
+    pcs = [f'PC{i + 1}' for i in range(len(explained))]
+    _fig, ax = plt.subplots(figsize=(7, 5))
+    prev = 0
+    for i, val in enumerate(explained):
+        ax.bar(i, val * 100, bottom=prev, color='C0')
+        prev += val * 100
+    # Add cumulative numbers as percentage
+    cumvals = np.cumsum(explained) * 100
+    for x, y in zip(range(len(explained)), cumvals, strict=False):
+        ax.text(x, y, f'{y:.1f}%', va='bottom', ha='center', fontsize=8)
+    ax.set_xticks(range(len(pcs)))
+    ax.set_xticklabels(pcs)
+    ax.set_ylabel('Explained Variance (%)')
+    ax.set_title('PCA Waterfall Chart')
+    ax.grid(axis='y')
+    plt.xlabel('Principal Components')
+    label_lines = []
+    for pc in loadings.columns:
+        top3 = loadings[pc].abs().nlargest(3)
+        label = f"{pc}: " + ", ".join([f"{name}" for name in top3.index])
+        label_lines.append(label)
+    textstr = "\n".join(label_lines)
+    ax.text(
+        0.95, 0.05, textstr,
+        transform=ax.transAxes,
+        fontsize=9,
+        va='bottom', ha='right',
+        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8, pad=0.5)
+    )
+    plt.tight_layout()
+    plt.savefig(output_path)
+    plt.close()
+
+
 def export_outputs(
         weather_df: pd.DataFrame,
         features: pd.DataFrame,
@@ -149,31 +189,9 @@ def export_outputs(
         output_path / 'pca_components.parquet')
 
     # Explained variance plot with waterfall diagram
-    explained = pca_result['explained_variance']
-    pcs = [f'PC{i + 1}' for i in range(len(explained))]
-    _fig, ax = plt.subplots(figsize=(8, 5))
-    prev = 0
-    for i, val in enumerate(explained):
-        ax.bar(i, val, bottom=prev, color='C0')
-        prev += val
-    # Draw cumulative line
-    cumvals = np.cumsum(explained)
-    ax.plot(
-        range(len(explained)), cumvals, color='C1', marker='o',
-        label='Cumulative')
-    for x, y in zip(range(len(explained)), cumvals, strict=False):
-        ax.text(x, y, f'{y:.2f}', va='bottom', ha='center', fontsize=8)
-    ax.set_xticks(range(len(pcs)))
-    ax.set_xticklabels(pcs)
-    ax.set_ylabel('Explained Variance Ratio')
-    ax.set_title('PCA Explained Variance Waterfall')
-    ax.legend(['Cumulative'])
-    ax.grid(axis='y')
-    plt.xlabel('Principal Components')
-    plt.tight_layout()
-    plt.savefig(output_path / 'pca_explained_variance.png')
-    plt.close()
-    # TODO: Plot loadings from pca_result['loadings']
+    plot_pca_explained_variance(
+        pca_result,
+        output_path / 'pca_explained_variance.png')
 
     # Print the labels to a markdown file
     with (output_path / 'pca_loadings.md').open('w') as f:
@@ -312,8 +330,8 @@ def plot_sankey_rotated_loadings(contrib_rot: pd.DataFrame, output_path):
     pc_names = list(contrib_rot.columns)
     node_labels = feature_names + pc_names
 
-    for i, feat in enumerate(feature_names):
-        for j, pc in enumerate(pc_names):
+    for i, _feat in enumerate(feature_names):
+        for j, _pc in enumerate(pc_names):
             val = contrib_rot.iloc[i, j]
             if val >= 2:
                 sources.append(i)
