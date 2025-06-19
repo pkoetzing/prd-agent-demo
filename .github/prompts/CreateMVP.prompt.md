@@ -1,6 +1,11 @@
 ---
 mode: 'agent'
-tools: ['codebase', 'fileEdit', 'terminalRunCommand']
+tools: [
+   'codebase', 'editFiles', 'runCommand',
+   'problems', 'runtasks',
+   'findTestFiles', 'testFailure',
+   'terminalLastCommand', terminalSelection',
+   ]
 description: 'Generate a new MVP from a product requirement document.'
 ---
 
@@ -16,12 +21,16 @@ PRD to use: #file:../../docs/rwy-finder-prd.md
       - running the tests
       - running the application
 
+4. **Virtual Environment**:
+   Create a virtual environment according to #file:Venv.prompt.md.
+
 4. **Testing**:
+   - Ensure all code passes linting (`ruff`) and type checks (`mypy`).
    - Run all tests and ensure they pass.
-   - Execute the `main.py` file and verify it works as expected. Address and resolve any runtime errors encountered.
+   - Execute the `main.py` file and verify it works as expected.
+   - Address and resolve any runtime errors encountered.
 
 5. **Follow Guidelines**:
    - Refer to #file:ProjectStructure.prompt.md for the required directory structure.
    - Use #file:Testing.prompt.md for testing guidelines.
    - Adhere to the coding standards outlined in #file:CodeStyle.prompt.md
-   - Ensure all code passes linting (`ruff`) and type checks (`mypy`).
