@@ -1,9 +1,8 @@
 ## Directory Structure
 
-- Create all code in the current folder.
-- Try to avoid splitting the code into multiple files unless necessary.
+- keep all scripts and notebooks (if any) in the main directory unless otherwise specified.
 - Adhere to the following structure:
-  - `root/` (main code)
+  - `.` (main script)
   - `<package_name>/` (package code)
   - `tests/` (unit tests)
   - `docs/` (documentation)
@@ -16,7 +15,8 @@
     - Use `dotenv` to load environment variables from `.env`
     - Add `DATA_Path=data` to `.env`
   - Use a `pyproject.toml` file for project metadata.
-
+  - The `pyproject.toml` file must include project metadata such as name, version, and dependencies.
+  
 ## Virtual Environment (VENV)
 
 - Always create a separate `.venv` directory for each project.
