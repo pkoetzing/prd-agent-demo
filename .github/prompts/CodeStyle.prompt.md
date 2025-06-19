@@ -12,6 +12,10 @@
 - Include type hints for all functions and methods.
 - Add docstrings for all functions and methods, ensuring they do not repeat the function signature.
 
+### Linting and Formatting
+- Use `ruff` for linting and formatting.
+- Ensure that all code passes `ruff` checks.
+
 #### Logging Guidelines
 - Use the `logging` module for all logging purposes.
 - Configure logging to:
