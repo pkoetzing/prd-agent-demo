@@ -5,12 +5,15 @@
 - Limit line length to:
   - **79 characters** for code.
   - **72 characters** for comments and docstrings.
-- Use hanging indentation only for line continuations; avoid placing a single closing brace, bracket, or parenthesis on a separate line.
+- Use hanging indentation only for line continuations;
+  avoid placing a single closing brace, bracket, or parenthesis
+  on a separate line.
 - Use:
   - **Single quotes** for strings.
   - **Double quotes** for docstrings.
 - Include type hints for all functions and methods.
-- Add docstrings for all functions and methods, ensuring they do not repeat the function signature.
+- Add docstrings for all functions and methods,
+  ensuring they do not repeat the function signature.
 
 ## Linting and Formatting
 - Use `ruff` for linting and formatting.
@@ -39,6 +42,8 @@
 - Use the `pathlib` module for file and directory operations.
 
 ## Security
-
-- All code must be checked for common security vulnerabilities (e.g., injection, unsafe file handling, insecure deserialization, use of eval/exec, hardcoded secrets).
-- Use secure coding practices: validate all inputs, sanitize data, avoid insecure functions, and handle sensitive data
+- All code must be checked for common security vulnerabilities
+ like injection, unsafe file handling, insecure deserialization,
+ use of eval/exec, hardcoded secrets
+- Use secure coding practices: validate all inputs, sanitize data,
+  avoid insecure functions, and handle sensitive data
